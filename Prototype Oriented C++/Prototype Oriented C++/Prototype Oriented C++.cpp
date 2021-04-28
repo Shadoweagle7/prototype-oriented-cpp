@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <functional>
 
 class not_implemented : public std::runtime_error {
 private:
@@ -18,6 +19,8 @@ public:
 	not_implemented() : std::runtime_error("Feature not implemented") {}
 };
 
+using namespace std::string_literals;
+using namespace std::string_view_literals;
 
 class prototype_t {
 /// <summary>
@@ -25,97 +28,74 @@ class prototype_t {
 /// operator overloads and methods.
 /// </summary>
 private:
-	std::map<std::string, std::any> data;
+	std::map<std::string, std::function<std::any(std::any)>> data; // <operator, value>
+	std::map<std::string, std::any> toolbox; // <variable name, variable value>
 public:
+	// Member variable and function creation here in this section
+
 	template<class T>
 	void create(std::string_view name, T &&value) {
-		this->data.insert({ std::string(name), std::make_any<T>(std::forward(value)) });
+		this->toolbox.insert({ std::string(name), std::make_any<T>(std::forward(value)) });
 	}
 
 	template<class T>
 	T &get(const std::string &name) {
-		return std::any_cast<T>(this->data[name]);
+		return std::any_cast<T>(this->toolbox[name]);
 	}
 
-	std::any operator+(std::any value) {}
-	std::any operator+(std::any value) const {}
-	std::any operator-(std::any value) {}
-	std::any operator-(std::any value) const {}
-	std::any operator*(std::any value) {}
-	std::any operator*(std::any value) const {}
-	std::any operator/(std::any value) {}
-	std::any operator/(std::any value) const {}
-	std::any operator%(std::any value) {}
-	std::any operator%(std::any value) const {}
-	std::any operator^(std::any value) {}
-	std::any operator^(std::any value) const {}
-	std::any operator&(std::any value) {}
-	std::any operator&(std::any value) const {}
-	std::any operator|(std::any value) {}
-	std::any operator|(std::any value) const {}
-	std::any operator~() {}
-	std::any operator~() const {}
-	std::any operator!() {}
-	std::any operator!() const {}
-	std::any operator=(std::any value) {}
-	std::any operator=(std::any value) const {}
-	std::any operator<(std::any value) {}
-	std::any operator<(std::any value) const {}
-	std::any operator>(std::any value) {}
-	std::any operator>(std::any value) const {}
-	std::any operator+=(std::any value) {}
-	std::any operator+=(std::any value) const {}
-	std::any operator-=(std::any value) {}
-	std::any operator-=(std::any value) const {}
-	std::any operator*=(std::any value) {}
-	std::any operator*=(std::any value) const {}
-	std::any operator/=(std::any value) {}
-	std::any operator/=(std::any value) const {}
-	std::any operator%=(std::any value) {}
-	std::any operator%=(std::any value) const {}
-	std::any operator^=(std::any value) {}
-	std::any operator^=(std::any value) const {}
-	std::any operator&=(std::any value) {}
-	std::any operator&=(std::any value) const {}
-	std::any operator|=(std::any value) {}
-	std::any operator|=(std::any value) const {}
-	std::any operator<<(std::any value) {}
-	std::any operator>>(std::any value) const {}
-	std::any operator>>=(std::any value) {}
-	std::any operator<<=(std::any value) const {}
-	std::any operator==(std::any value) {}
-	std::any operator==(std::any value) const {}
-	std::any operator!=(std::any value) {}
-	std::any operator!=(std::any value) const {}
-	std::any operator<=(std::any value) {}
-	std::any operator<=(std::any value) const {}
-	std::any operator>=(std::any value) {}
-	std::any operator>=(std::any value) const {}
-	std::any operator<=>(std::any value) {}
-	std::any operator<=>(std::any value) const {}
-	std::any operator&&(std::any value) {}
-	std::any operator&&(std::any value) const {}
-	std::any operator||(std::any value) {}
-	std::any operator||(std::any value) const {}
-	std::any operator++() {}
-	std::any operator++() const {}
-	std::any operator++(int) {}
-	std::any operator++(int) const {}
-	std::any operator--() {}
-	std::any operator--() const {}
-	std::any operator--(int) {}
-	std::any operator--(int) const {}
-	std::any operator,(std::any value) {}
-	std::any operator,(std::any value) const {}
-	std::any operator->*(std::any value) {}
-	std::any operator->*(std::any value) const {}
-	std::any operator->() {}
-	std::any operator->() const {}
+	// This section allows for operators to be delegated to
 
-	std::any functor_call(std::initializer_list<std::any> params) {}
-	std::any functor_call(std::initializer_list<std::any> params) const {}
-	std::any index(std::any value) {}
-	std::any index(std::any value) const {}
+	static const std::any none;
+
+	void subscribe_operator(const std::string &op, std::function<std::any(std::any)> action) {
+		this->data.insert({ op, action });
+	}
+
+	std::any operator+(std::any value) { return this->data.at("+")(value); }
+	std::any operator-(std::any value) { return this->data.at("-")(value); }
+	std::any operator*(std::any value) { return this->data.at("*")(value); }
+	std::any operator/(std::any value) { return this->data.at("/")(value); }
+	std::any operator%(std::any value) { return this->data.at("%")(value); }
+	std::any operator^(std::any value) { return this->data.at("^")(value); }
+	std::any operator&(std::any value) { return this->data.at("&")(value); }
+	std::any operator|(std::any value) { return this->data.at("|")(value); }
+	std::any operator~() { return this->data.at("~")(none); }
+	std::any operator!() { return this->data.at("!")(none); }
+	std::any operator=(std::any value) { return this->data.at("=")(value); }
+	std::any operator<(std::any value) { return this->data.at("<")(value); }
+	std::any operator>(std::any value) { return this->data.at(">")(value); }
+	std::any operator+=(std::any value) { return this->data.at("+=")(value); }
+	std::any operator-=(std::any value) { return this->data.at("-=")(value); }
+	std::any operator*=(std::any value) { return this->data.at("*=")(value); }
+	std::any operator/=(std::any value) { return this->data.at("/=")(value); }
+	std::any operator%=(std::any value) { return this->data.at("%=")(value); }
+	std::any operator^=(std::any value) { return this->data.at("^=")(value); }
+	std::any operator&=(std::any value) { return this->data.at("&=")(value); }
+	std::any operator|=(std::any value) { return this->data.at("|=")(value); }
+	std::any operator<<(std::any value) { return this->data.at("<<")(value); }
+	std::any operator>>(std::any value) { return this->data.at(">>")(value); }
+	std::any operator>>=(std::any value) { return this->data.at(">>=")(value); }
+	std::any operator<<=(std::any value) { return this->data.at("<<=")(value); }
+	std::any operator==(std::any value) { return this->data.at("==")(value); }
+	std::any operator!=(std::any value) { return this->data.at("!=")(value); }
+	std::any operator<=(std::any value) { return this->data.at("<=")(value); }
+	std::any operator>=(std::any value) { return this->data.at(">=")(value); }
+	std::any operator<=>(std::any value) { return this->data.at("<=>")(value); }
+	std::any operator&&(std::any value) { return this->data.at("&&")(value); }
+	std::any operator||(std::any value) { return this->data.at("||")(value); }
+	std::any operator++() { return this->data.at("++")(none); }
+	std::any operator++(int) { return this->data.at("++(int)")(none); }
+	std::any operator--() { return this->data.at("--")(none); }
+	std::any operator--(int) { return this->data.at("--(int)")(none); }
+	std::any operator,(std::any value) { return this->data.at(",")(value); }
+	std::any operator->*(std::any value) { return this->data.at("->*")(value); }
+	std::any operator->() { return this->data.at("->")(none); }
+			 
+	std::any functor_call(std::initializer_list<std::any> params) { 
+		return this->data.at("()")(std::make_any<std::initializer_list<std::any>>(params));
+	}
+
+	std::any index(std::any value) { return this->data.at("[]")(value); }
 
 	void *allocate(size_t n) {
 		return ::operator new(n);
@@ -133,6 +113,8 @@ public:
 		::operator delete[](ptr);
 	}
 };
+
+const std::any prototype_t::none{};
 
 template<class T>
 concept prototypable = requires(T t) {
@@ -152,6 +134,11 @@ concept prototypable = requires(T t) {
 };
 
 
+// TODO: implement. Just call l.operator==(r) or something, and do this for all operators
+template<prototypable L, prototypable R>
+void operator==(L l, R r) {
+
+}
 
 class prototypable_test {
 private:
@@ -166,6 +153,7 @@ private:
 public:
 	int operator++(int a) {
 		std::cout << a << "\n";
+		return a;
 	}
 };
 
